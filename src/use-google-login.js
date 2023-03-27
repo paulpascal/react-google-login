@@ -1,5 +1,7 @@
 /* eslint-disable no-unused-vars */
 
+import jwt_decode from 'jwt-decode'
+
 import { useState, useEffect } from 'react'
 import loadScript from './load-script'
 import removeScript from './remove-script'
@@ -31,7 +33,7 @@ const useGoogleLogin = ({
   const handleSigninSuccess = function handleSigninSuccess(response) {
     const credentialToken = response.credential
 
-    const payloadData = {}
+    const payloadData = jwt_decode(credentialToken)
 
     response.profileObj = {
       googleId: payloadData.sub,
@@ -45,9 +47,23 @@ const useGoogleLogin = ({
       familyName: payloadData.family_name
     }
 
-    response.tokenObj = {}
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
 
-    onSuccess(response)
+      prompt: 'none',
+      hint: payloadData.email,
+      scope,
+
+      callback(tokenResponse) {
+        response.tokenObj = {
+          id_token: tokenResponse.access_token
+        }
+
+        onSuccess(response)
+      }
+    })
+
+    client.requestAccessToken()
   }
 
   const signIn = function signIn(event) {
@@ -76,25 +92,14 @@ const useGoogleLogin = ({
       jsSrc,
 
       () => {
-        window.onload(() => {
+        window.onload = () => {
           window.google.accounts.id.initialize({
             client_id: clientId,
             callback: handleSigninSuccess
           })
 
-          /*
-                    google.accounts.oauth2.initCodeClient(
-                      {
-                        client_id: clientId,
-
-                        prompt: "select_account",
-                        scope: scope,
-
-                        callback: handleSigninSuccess
-                      }
-                    );
-                    */
-        })
+          setLoaded(true)
+        }
       },
       error => {
         onLoadFailure(error)
