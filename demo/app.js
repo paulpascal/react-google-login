@@ -44,7 +44,7 @@ const MountTest = () => {
 
 export default () => (
   <div>
-    <MountTest />
+    {/* <MountTest />
     <br />
     <br />
     <GoogleLogin
@@ -85,16 +85,16 @@ export default () => (
       <span>Adwords</span>
     </GoogleLogin>
     <br />
-    <br />
+    <br /> */}
     <GoogleLogin onSuccess={success} onFailure={error} clientId={clientId} />
-    <br />
+    {/* <br />
     <br />
     <GoogleLogin theme="dark" onSuccess={success} onFailure={error} clientId={clientId} />
     <br />
     <br />
     <GoogleLogin theme="dark" style={{ background: 'blue' }} onSuccess={success} onFailure={error} clientId={clientId} />
     <br />
-    <br />
-    <GoogleLogout buttonText="Logout" onLogoutSuccess={logout} />
+    <br /> */}
+    {/* <GoogleLogout buttonText="Logout" onLogoutSuccess={logout} /> */}
   </div>
 )
