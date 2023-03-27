@@ -115,6 +115,19 @@ const useGoogleLogin = (
 												callback: handleSigninSuccess
 											}
 										);
+
+										/*
+										google.accounts.oauth2.initCodeClient(
+											{
+												client_id: clientId,
+
+												prompt: "select_account",
+												scope: scope,
+
+												callback: handleSigninSuccess
+											}
+										);
+										*/
 									}
 								);
 							}
