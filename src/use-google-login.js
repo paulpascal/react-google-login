@@ -34,6 +34,28 @@ const useGoogleLogin = (
 
 		const handleSigninSuccess = (
 			function handleSigninSuccess( response ){
+				const credentialToken = (
+					response.credential
+				);
+
+				const payloadData = ( { } );
+
+				response.profileObj = (
+					{
+						"googleId": payloadData.sub,
+
+						"imageUrl": payloadData.picture,
+
+						"email": payloadData.email,
+
+						"name": payloadData.name,
+						"givenName": payloadData.given_name,
+						"familyName": payloadData.family_name
+					}
+				);
+
+				response.tokenObj = ( { } );
+
 				onSuccess( response );
 			}
 		)
@@ -50,6 +72,13 @@ const useGoogleLogin = (
 				if(
 					loaded
 				){
+					google.accounts.id.prompt(
+						(
+							( notification ) => {
+
+							}
+						)
+					);
 				}
 			}
 		);
