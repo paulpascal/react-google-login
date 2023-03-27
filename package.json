@@ -1,6 +1,6 @@
 {
-  "name": "react-google-login",
-  "version": "5.1.3",
+  "name": "@dump-work/react-google-login",
+  "version": "6.0.0",
   "description": "A Google Login Component for React",
   "main": "dist/google-login.js",
   "scripts": {
@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anthonyjgrove/react-google-login.git"
+    "url": "git+https://github.com/dump-work/react-google-login.git"
   },
   "keywords": [
     "react",
@@ -38,13 +38,17 @@
     "name": "Anthony Grove",
     "email": "anthony@th3legend.com"
   },
+  "contributors": [
+    "Richeve S. Bebedor <richeve.bebedor@gmail.com>"
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/anthonyjgrove/react-google-login/issues"
+    "url": "https://github.com/dump-work/react-google-login/issues"
   },
-  "homepage": "https://github.com/anthonyjgrove/react-google-login",
+  "homepage": "https://github.com/dump-work/react-google-login",
   "dependencies": {
     "@types/react": "*",
+    "jwt-decode": "^3.1.2",
     "prop-types": "^15.6.0"
   },
   "devDependencies": {

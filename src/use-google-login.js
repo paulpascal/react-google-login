@@ -1,3 +1,7 @@
+/* eslint-disable no-unused-vars */
+
+import jwt_decode from 'jwt-decode'
+
 import { useState, useEffect } from 'react'
 import loadScript from './load-script'
 import removeScript from './remove-script'
@@ -21,131 +25,90 @@ const useGoogleLogin = ({
   scope,
   accessType,
   responseType,
-  jsSrc = 'https://apis.google.com/js/api.js',
+  jsSrc = 'https://accounts.google.com/gsi/client',
   prompt
 }) => {
   const [loaded, setLoaded] = useState(false)
 
-  function handleSigninSuccess(res) {
-    /*
-      offer renamed response keys to names that match use
-    */
-    const basicProfile = res.getBasicProfile()
-    const authResponse = res.getAuthResponse(true)
-    res.googleId = basicProfile.getId()
-    res.tokenObj = authResponse
-    res.tokenId = authResponse.id_token
-    res.accessToken = authResponse.access_token
-    res.profileObj = {
-      googleId: basicProfile.getId(),
-      imageUrl: basicProfile.getImageUrl(),
-      email: basicProfile.getEmail(),
-      name: basicProfile.getName(),
-      givenName: basicProfile.getGivenName(),
-      familyName: basicProfile.getFamilyName()
+  const handleSigninSuccess = function handleSigninSuccess(response) {
+    const credentialToken = response.credential
+
+    const payloadData = jwt_decode(credentialToken)
+
+    response.profileObj = {
+      googleId: payloadData.sub,
+
+      imageUrl: payloadData.picture,
+
+      email: payloadData.email,
+
+      name: payloadData.name,
+      givenName: payloadData.given_name,
+      familyName: payloadData.family_name
     }
-    onSuccess(res)
+
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+
+      prompt: 'none',
+      hint: payloadData.email,
+      scope,
+
+      callback(tokenResponse) {
+        response.tokenObj = {
+          id_token: tokenResponse.access_token
+        }
+
+        onSuccess(response)
+      }
+    })
+
+    client.requestAccessToken()
   }
 
-  function signIn(e) {
-    if (e) {
-      e.preventDefault() // to prevent submit if used within form
+  const signIn = function signIn(event) {
+    if (event) {
+      // to prevent submit if used within form
+      event.preventDefault()
     }
+
     if (loaded) {
-      const GoogleAuth = window.gapi.auth2.getAuthInstance()
-      const options = {
-        prompt
-      }
-      onRequest()
-      if (responseType === 'code') {
-        GoogleAuth.grantOfflineAccess(options).then(
-          res => onSuccess(res),
-          err => onFailure(err)
-        )
-      } else {
-        GoogleAuth.signIn(options).then(
-          res => handleSigninSuccess(res),
-          err => onFailure(err)
-        )
-      }
+      window.google.accounts.id.prompt(notification => {})
     }
   }
 
   useEffect(() => {
     let unmounted = false
+
     const onLoadFailure = onScriptLoadFailure || onFailure
+
     loadScript(
       document,
+
       'script',
+
       'google-login',
+
       jsSrc,
+
       () => {
-        const params = {
-          client_id: clientId,
-          cookie_policy: cookiePolicy,
-          login_hint: loginHint,
-          hosted_domain: hostedDomain,
-          fetch_basic_profile: fetchBasicProfile,
-          discoveryDocs,
-          ux_mode: uxMode,
-          redirect_uri: redirectUri,
-          scope,
-          access_type: accessType
-        }
+        window.onload = () => {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleSigninSuccess
+          })
 
-        if (responseType === 'code') {
-          params.access_type = 'offline'
+          setLoaded(true)
         }
-
-        window.gapi.load('auth2', () => {
-          const GoogleAuth = window.gapi.auth2.getAuthInstance()
-          if (!GoogleAuth) {
-            window.gapi.auth2.init(params).then(
-              res => {
-                if (!unmounted) {
-                  setLoaded(true)
-                  const signedIn = isSignedIn && res.isSignedIn.get()
-                  onAutoLoadFinished(signedIn)
-                  if (signedIn) {
-                    handleSigninSuccess(res.currentUser.get())
-                  }
-                }
-              },
-              err => {
-                setLoaded(true)
-                onAutoLoadFinished(false)
-                onLoadFailure(err)
-              }
-            )
-          } else {
-            GoogleAuth.then(
-              () => {
-                if (unmounted) {
-                  return
-                }
-                if (isSignedIn && GoogleAuth.isSignedIn.get()) {
-                  setLoaded(true)
-                  onAutoLoadFinished(true)
-                  handleSigninSuccess(GoogleAuth.currentUser.get())
-                } else {
-                  setLoaded(true)
-                  onAutoLoadFinished(false)
-                }
-              },
-              err => {
-                onFailure(err)
-              }
-            )
-          }
-        })
       },
-      err => {
-        onLoadFailure(err)
+      error => {
+        onLoadFailure(error)
       }
     )
 
     return () => {
       unmounted = true
+
       removeScript(document, 'google-login')
     }
   }, [])

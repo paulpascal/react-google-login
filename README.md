@@ -1,6 +1,3 @@
-```diff
-- This package is no longer maintained.
-```
 
 # React Google Login
 
