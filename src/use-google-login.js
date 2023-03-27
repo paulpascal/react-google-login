@@ -1,187 +1,120 @@
+/* eslint-disable no-unused-vars */
 
-import { useState, useEffect } from "react"
-import loadScript from "./load-script"
-import removeScript from "./remove-script"
+import { useState, useEffect } from 'react'
+import loadScript from './load-script'
+import removeScript from './remove-script'
 
-const useGoogleLogin = (
-	(
-		{
-			onSuccess = ( ) => { },
-			onAutoLoadFinished = ( ) => {},
-			onFailure = ( ) => { },
-			onRequest = ( ) => { },
-			onScriptLoadFailure,
-			clientId,
-			cookiePolicy,
-			loginHint,
-			hostedDomain,
-			autoLoad,
-			isSignedIn,
-			fetchBasicProfile,
-			redirectUri,
-			discoveryDocs,
-			uxMode,
-			scope,
-			accessType,
-			responseType,
-			jsSrc = "https://accounts.google.com/gsi/client",
-			prompt
-		}
-	) => {
-		const [ loaded, setLoaded ] = (
-			useState( false )
-		);
+const useGoogleLogin = ({
+  onSuccess = () => {},
+  onAutoLoadFinished = () => {},
+  onFailure = () => {},
+  onRequest = () => {},
+  onScriptLoadFailure,
+  clientId,
+  cookiePolicy,
+  loginHint,
+  hostedDomain,
+  autoLoad,
+  isSignedIn,
+  fetchBasicProfile,
+  redirectUri,
+  discoveryDocs,
+  uxMode,
+  scope,
+  accessType,
+  responseType,
+  jsSrc = 'https://accounts.google.com/gsi/client',
+  prompt
+}) => {
+  const [loaded, setLoaded] = useState(false)
 
-		const handleSigninSuccess = (
-			function handleSigninSuccess( response ){
-				const credentialToken = (
-					response.credential
-				);
+  const handleSigninSuccess = function handleSigninSuccess(response) {
+    const credentialToken = response.credential
 
-				const payloadData = ( { } );
+    const payloadData = {}
 
-				response.profileObj = (
-					{
-						"googleId": payloadData.sub,
+    response.profileObj = {
+      googleId: payloadData.sub,
 
-						"imageUrl": payloadData.picture,
+      imageUrl: payloadData.picture,
 
-						"email": payloadData.email,
+      email: payloadData.email,
 
-						"name": payloadData.name,
-						"givenName": payloadData.given_name,
-						"familyName": payloadData.family_name
-					}
-				);
+      name: payloadData.name,
+      givenName: payloadData.given_name,
+      familyName: payloadData.family_name
+    }
 
-				response.tokenObj = ( { } );
+    response.tokenObj = {}
 
-				onSuccess( response );
-			}
-		)
+    onSuccess(response)
+  }
 
-		const signIn = (
-			function signIn( event ){
-				if(
-					event
-				){
-					// to prevent submit if used within form
-					event.preventDefault( );
-				}
+  const signIn = function signIn(event) {
+    if (event) {
+      // to prevent submit if used within form
+      event.preventDefault()
+    }
 
-				if(
-					loaded
-				){
-					google.accounts.id.prompt(
-						(
-							( notification ) => {
+    if (loaded) {
+      window.google.accounts.id.prompt(notification => {})
+    }
+  }
 
-							}
-						)
-					);
-				}
-			}
-		);
+  useEffect(() => {
+    let unmounted = false
 
-		useEffect(
-			(
-				( ) => {
-					let unmounted = (
-						false
-					);
+    const onLoadFailure = onScriptLoadFailure || onFailure
 
-					const onLoadFailure = (
-							onScriptLoadFailure
-						||
-							onFailure
-					);
+    loadScript(
+      document,
 
-					loadScript(
-						document,
+      'script',
 
-						"script",
+      'google-login',
 
-						"google-login",
+      jsSrc,
 
-						jsSrc,
+      () => {
+        window.onload(() => {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleSigninSuccess
+          })
 
-						(
-							( ) => {
-								window.onload(
-									function( ){
-										google.accounts.id.initialize(
-											{
-												client_id: clientId,
-												callback: handleSigninSuccess
-											}
-										);
+          /*
+                    google.accounts.oauth2.initCodeClient(
+                      {
+                        client_id: clientId,
 
-										/*
-										google.accounts.oauth2.initCodeClient(
-											{
-												client_id: clientId,
+                        prompt: "select_account",
+                        scope: scope,
 
-												prompt: "select_account",
-												scope: scope,
+                        callback: handleSigninSuccess
+                      }
+                    );
+                    */
+        })
+      },
+      error => {
+        onLoadFailure(error)
+      }
+    )
 
-												callback: handleSigninSuccess
-											}
-										);
-										*/
-									}
-								);
-							}
-						),
+    return () => {
+      unmounted = true
 
-						(
-							( error ) => {
-								onLoadFailure( error );
-							}
-						)
-					);
+      removeScript(document, 'google-login')
+    }
+  }, [])
 
-					return	(
-								( ) => {
-									unmounted = (
-										true
-									);
+  useEffect(() => {
+    if (autoLoad) {
+      signIn()
+    }
+  }, [loaded])
 
-									removeScript( document, "google-login" );
-								}
-							)
-				}
-			),
+  return { signIn, loaded }
+}
 
-			(
-				[ ]
-			)
-		);
-
-		useEffect(
-			(
-				( ) => {
-					if(
-						autoLoad
-					){
-						signIn( );
-					}
-				}
-			),
-
-			(
-				[
-					loaded
-				]
-			)
-		);
-
-		return	(
-					{
-						signIn,
-						loaded
-					}
-				);
-	}
-);
-
-export default useGoogleLogin;
+export default useGoogleLogin
