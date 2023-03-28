@@ -81,7 +81,15 @@ const useGoogleLogin = ({
     }
 
     if (loaded) {
-      window.google.accounts.id.prompt(notification => {})
+      window.google.accounts.id.prompt(notification => {
+        if (
+          notification.isNotDisplayed() ||
+          notification.isSkippedMoment() ||
+          ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
+        ) {
+          window.google.accounts.id.cancel()
+        }
+      })
     }
   }
 
