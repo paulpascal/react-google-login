@@ -47,6 +47,7 @@ const useGoogleLogin = ({
       familyName: payloadData.family_name
     }
 
+    /*
     const client = window.google.accounts.oauth2.initTokenClient({
       client_id: clientId,
 
@@ -64,6 +65,13 @@ const useGoogleLogin = ({
     })
 
     client.requestAccessToken()
+    */
+
+    response.tokenObj = {
+      id_token: credentialToken
+    }
+
+    onSuccess(response)
   }
 
   const signIn = function signIn(event) {
