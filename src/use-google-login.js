@@ -81,7 +81,16 @@ const useGoogleLogin = ({
     }
 
     if (loaded) {
-      window.google.accounts.id.prompt(notification => {})
+      window.google.accounts.id.prompt(notification => {
+        if (
+          notification.isNotDisplayed() ||
+          notification.isSkippedMoment() ||
+          ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
+        ) {
+          document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
+          window.google.accounts.id.cancel()
+        }
+      })
     }
   }
 
