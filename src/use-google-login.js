@@ -30,10 +30,12 @@ const useGoogleLogin = ({
 }) => {
   const [loaded, setLoaded] = useState(false)
 
-  const handleSigninSuccess = function handleSigninSuccess(response) {
-    const credentialToken = response.credential
+  const handleSigninSuccess = function handleSigninSuccess(credentialResponse) {
+    const credentialToken = credentialResponse.credential
 
     const payloadData = jwt_decode(credentialToken)
+
+    const response = {}
 
     response.profileObj = {
       googleId: payloadData.sub,
@@ -46,26 +48,6 @@ const useGoogleLogin = ({
       givenName: payloadData.given_name,
       familyName: payloadData.family_name
     }
-
-    /*
-    const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-
-      prompt: 'none',
-      hint: payloadData.email,
-      scope,
-
-      callback(tokenResponse) {
-        response.tokenObj = {
-          id_token: tokenResponse.access_token
-        }
-
-        onSuccess(response)
-      }
-    })
-
-    client.requestAccessToken()
-    */
 
     response.tokenObj = {
       id_token: credentialToken
@@ -82,7 +64,28 @@ const useGoogleLogin = ({
 
     if (loaded) {
       window.google.accounts.id.prompt(notification => {
-        if (
+        if (notification.isNotDisplayed() && ['opt_out_or_no_session'].includes(notification.getNotDisplayedReason())) {
+          const client = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+
+            scope,
+
+            callback(tokenResponse) {
+              window.google.accounts.id.initialize({
+                client_id: clientId,
+
+                itp_support: true,
+                auto_select: true,
+
+                callback: handleSigninSuccess
+              })
+
+              window.google.accounts.id.prompt()
+            }
+          })
+
+          client.requestAccessToken()
+        } else if (
           notification.isNotDisplayed() ||
           notification.isSkippedMoment() ||
           ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
@@ -112,6 +115,9 @@ const useGoogleLogin = ({
         window.onload = () => {
           window.google.accounts.id.initialize({
             client_id: clientId,
+
+            itp_support: true,
+
             callback: handleSigninSuccess
           })
 
