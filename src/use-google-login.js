@@ -30,10 +30,12 @@ const useGoogleLogin = ({
 }) => {
   const [loaded, setLoaded] = useState(false)
 
-  const handleSigninSuccess = function handleSigninSuccess(response) {
-    const credentialToken = response.credential
+  const handleSigninSuccess = function handleSigninSuccess(credentialResponse) {
+    const credentialToken = credentialResponse.credential
 
     const payloadData = jwt_decode(credentialToken)
+
+    const response = {}
 
     response.profileObj = {
       googleId: payloadData.sub,
@@ -46,26 +48,6 @@ const useGoogleLogin = ({
       givenName: payloadData.given_name,
       familyName: payloadData.family_name
     }
-
-    /*
-    const client = window.google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-
-      prompt: 'none',
-      hint: payloadData.email,
-      scope,
-
-      callback(tokenResponse) {
-        response.tokenObj = {
-          id_token: tokenResponse.access_token
-        }
-
-        onSuccess(response)
-      }
-    })
-
-    client.requestAccessToken()
-    */
 
     response.tokenObj = {
       id_token: credentialToken
@@ -82,7 +64,58 @@ const useGoogleLogin = ({
 
     if (loaded) {
       window.google.accounts.id.prompt(notification => {
-        if (
+        if (notification.isNotDisplayed() && ['opt_out_or_no_session'].includes(notification.getNotDisplayedReason())) {
+          const client = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+
+            scope,
+
+            callback(tokenResponse) {
+              const accessToken = tokenResponse.access_token
+
+              const response = {}
+
+              fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`)
+                .then(profileResponse => profileResponse.json())
+                .then(profileData => {
+                  response.profileObj = {
+                    googleId: profileData.sub,
+
+                    imageUrl: profileData.picture,
+
+                    email: profileData.email,
+
+                    name: profileData.name,
+                    givenName: profileData.given_name,
+                    familyName: profileData.family_name
+                  }
+
+                  window.google.accounts.id.initialize({
+                    client_id: clientId,
+
+                    itp_support: true,
+                    auto_select: true,
+
+                    callback(credentialResponse) {
+                      const credentialToken = credentialResponse.credential
+
+                      response.tokenObj = {
+                        id_token: credentialToken
+                      }
+
+                      onSuccess(response)
+                    }
+                  })
+                  window.google.accounts.id.prompt()
+                })
+                .catch(error => {
+                  onFailure(error)
+                })
+            }
+          })
+
+          client.requestAccessToken()
+        } else if (
           notification.isNotDisplayed() ||
           notification.isSkippedMoment() ||
           ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
@@ -112,6 +145,9 @@ const useGoogleLogin = ({
         window.onload = () => {
           window.google.accounts.id.initialize({
             client_id: clientId,
+
+            itp_support: true,
+
             callback: handleSigninSuccess
           })
 
