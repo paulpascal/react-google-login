@@ -71,46 +71,16 @@ const useGoogleLogin = ({
             scope,
 
             callback(tokenResponse) {
-              const accessToken = tokenResponse.access_token
+              window.google.accounts.id.initialize({
+                client_id: clientId,
 
-              const response = {}
+                itp_support: true,
+                auto_select: true,
 
-              fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`)
-                .then(profileResponse => profileResponse.json())
-                .then(profileData => {
-                  response.profileObj = {
-                    googleId: profileData.sub,
+                callback: handleSigninSuccess
+              })
 
-                    imageUrl: profileData.picture,
-
-                    email: profileData.email,
-
-                    name: profileData.name,
-                    givenName: profileData.given_name,
-                    familyName: profileData.family_name
-                  }
-
-                  window.google.accounts.id.initialize({
-                    client_id: clientId,
-
-                    itp_support: true,
-                    auto_select: true,
-
-                    callback(credentialResponse) {
-                      const credentialToken = credentialResponse.credential
-
-                      response.tokenObj = {
-                        id_token: credentialToken
-                      }
-
-                      onSuccess(response)
-                    }
-                  })
-                  window.google.accounts.id.prompt()
-                })
-                .catch(error => {
-                  onFailure(error)
-                })
+              window.google.accounts.id.prompt()
             }
           })
 
