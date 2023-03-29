@@ -126,6 +126,9 @@ const useGoogleLogin = ({
     return () => {
       unmounted = true
 
+      document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
+      window.google.accounts.id.cancel()
+
       removeScript(document, 'google-login')
     }
   }, [])
