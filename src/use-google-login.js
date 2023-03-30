@@ -94,6 +94,12 @@ const useGoogleLogin = ({
           window.google.accounts.id.cancel()
         }
       })
+    } else {
+      const loadTimeout = setTimeout(() => {
+        signIn(event)
+
+        clearTimeout(loadTimeout)
+      }, 1000)
     }
   }
 
@@ -112,7 +118,7 @@ const useGoogleLogin = ({
       jsSrc,
 
       () => {
-        window.onload = () => {
+        if (loaded) {
           window.google.accounts.id.initialize({
             client_id: clientId,
 
@@ -120,8 +126,18 @@ const useGoogleLogin = ({
 
             callback: handleSigninSuccess
           })
+        } else {
+          window.onload = () => {
+            window.google.accounts.id.initialize({
+              client_id: clientId,
 
-          setLoaded(true)
+              itp_support: true,
+
+              callback: handleSigninSuccess
+            })
+
+            setLoaded(true)
+          }
         }
       },
       error => {
