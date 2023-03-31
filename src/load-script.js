@@ -13,7 +13,7 @@ export default (d, s, id, jsSrc, cb, onError, check) => {
   js.onerror = onError
   js.onload = cb
 
-  if (typeof check == 'function' && check()) {
-    cb();
+  if (typeof check === 'function' && check()) {
+    cb()
   }
 }

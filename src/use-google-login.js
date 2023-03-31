@@ -161,7 +161,7 @@ const useGoogleLogin = ({
       jsSrc,
 
       () => {
-        initialize = true;
+        initialize = true
 
         if (loaded) {
           console.log('useEffect -> loaded')
@@ -179,9 +179,7 @@ const useGoogleLogin = ({
         onLoadFailure(error)
       },
 
-      () => {
-        return !initialize && window.google && window.google.accounts;
-      }
+      () => !initialize && window.google && window.google.accounts
     )
 
     return () => {
