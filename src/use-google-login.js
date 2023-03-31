@@ -164,7 +164,7 @@ const useGoogleLogin = ({
       () => {
         initialize = true
 
-        if (bypassed) {
+        if (bypassed && !loaded) {
           console.log('useEffect -> bypassed:loaded')
           initializeAccount()
 
