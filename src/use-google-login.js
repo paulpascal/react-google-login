@@ -147,6 +147,7 @@ const useGoogleLogin = ({
     console.log('useEffect -> mount')
 
     let unmounted = false
+    let initialize = false
 
     const onLoadFailure = onScriptLoadFailure || onFailure
 
@@ -160,6 +161,8 @@ const useGoogleLogin = ({
       jsSrc,
 
       () => {
+        initialize = true
+
         if (loaded) {
           console.log('useEffect -> loaded')
           initializeAccount()
@@ -174,7 +177,9 @@ const useGoogleLogin = ({
       },
       error => {
         onLoadFailure(error)
-      }
+      },
+
+      () => !initialize && window.google && window.google.accounts
     )
 
     return () => {
