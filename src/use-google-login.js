@@ -101,6 +101,12 @@ const useGoogleLogin = ({
             document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
 
             window.google && window.google.accounts && window.google.accounts.id.cancel()
+
+            const loadTimeout = setTimeout(() => {
+              signIn(event)
+
+              clearTimeout(loadTimeout)
+            }, 1000)
           }
         })
     } else {
