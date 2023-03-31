@@ -57,6 +57,24 @@ const useGoogleLogin = ({
     onSuccess(response)
   }
 
+  const initializeAccount = () => {
+    if (window.google && window.google.accounts) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+
+        itp_support: true,
+
+        callback: handleSigninSuccess
+      })
+    } else {
+      const initializeTimeout = setTimeout(() => {
+        initializeAccount()
+
+        clearTimeout(initializeTimeout)
+      }, 1000)
+    }
+  }
+
   const signIn = function signIn(event) {
     if (event) {
       // to prevent submit if used within form
@@ -102,11 +120,7 @@ const useGoogleLogin = ({
 
             window.google && window.google.accounts && window.google.accounts.id.cancel()
 
-            const loadTimeout = setTimeout(() => {
-              signIn(event)
-
-              clearTimeout(loadTimeout)
-            }, 1000)
+            initializeAccount()
           }
         })
     } else {
@@ -114,24 +128,6 @@ const useGoogleLogin = ({
         signIn(event)
 
         clearTimeout(loadTimeout)
-      }, 1000)
-    }
-  }
-
-  const initializeAccount = () => {
-    if (window.google && window.google.accounts) {
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-
-        itp_support: true,
-
-        callback: handleSigninSuccess
-      })
-    } else {
-      const initializeTimeout = setTimeout(() => {
-        initializeAccount()
-
-        clearTimeout(initializeTimeout)
       }, 1000)
     }
   }
