@@ -103,6 +103,24 @@ const useGoogleLogin = ({
     }
   }
 
+  const initializeAccount = () => {
+    if (window.google && window.google.accounts) {
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+
+        itp_support: true,
+
+        callback: handleSigninSuccess
+      })
+    } else {
+      const initializeTimeout = setTimeout(() => {
+        initializeAccount()
+
+        clearTimeout(initializeTimeout)
+      }, 1000)
+    }
+  }
+
   useEffect(() => {
     let unmounted = false
 
@@ -119,22 +137,10 @@ const useGoogleLogin = ({
 
       () => {
         if (loaded) {
-          window.google.accounts.id.initialize({
-            client_id: clientId,
-
-            itp_support: true,
-
-            callback: handleSigninSuccess
-          })
+          initializeAccount()
         } else {
           window.onload = () => {
-            window.google.accounts.id.initialize({
-              client_id: clientId,
-
-              itp_support: true,
-
-              callback: handleSigninSuccess
-            })
+            initializeAccount()
 
             setLoaded(true)
           }
