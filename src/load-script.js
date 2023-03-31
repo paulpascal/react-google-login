@@ -1,4 +1,4 @@
-export default (d, s, id, jsSrc, cb, onError) => {
+export default (d, s, id, jsSrc, cb, onError, check) => {
   const element = d.getElementsByTagName(s)[0]
   const fjs = element
   let js = element
@@ -12,4 +12,8 @@ export default (d, s, id, jsSrc, cb, onError) => {
   }
   js.onerror = onError
   js.onload = cb
+
+  if (typeof check == 'function' && check()) {
+    cb();
+  }
 }
