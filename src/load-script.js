@@ -14,6 +14,10 @@ export default (d, s, id, jsSrc, cb, onError, check) => {
   js.onload = cb
 
   if (typeof check === 'function' && check()) {
-    cb()
+    const callbackTimeout = setTimeout(() => {
+      cb()
+
+      clearTimeout(callbackTimeout)
+    }, 1000)
   }
 }
