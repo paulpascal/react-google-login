@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-unused-expressions */
+/* eslint-disable no-console */
 
 import jwt_decode from 'jwt-decode'
 
@@ -82,10 +83,16 @@ const useGoogleLogin = ({
     }
 
     if (loaded) {
+      console.log('signIn -> loaded')
+
       window.google &&
         window.google.accounts &&
         window.google.accounts.id.prompt(notification => {
+          console.log('signIn -> prompt', notification)
+
           if (notification.isNotDisplayed() && ['opt_out_or_no_session'].includes(notification.getNotDisplayedReason())) {
+            console.log('signIn -> opt_out')
+
             const client =
               window.google &&
               window.google.accounts &&
@@ -116,6 +123,8 @@ const useGoogleLogin = ({
             notification.isSkippedMoment() ||
             ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
           ) {
+            console.log('signIn -> not displayed')
+
             document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
 
             window.google && window.google.accounts && window.google.accounts.id.cancel()
@@ -125,6 +134,8 @@ const useGoogleLogin = ({
         })
     } else {
       const loadTimeout = setTimeout(() => {
+        console.log('signIn -> not loaded')
+
         signIn(event)
 
         clearTimeout(loadTimeout)
@@ -133,6 +144,8 @@ const useGoogleLogin = ({
   }
 
   useEffect(() => {
+    console.log('useEffect -> mount')
+
     let unmounted = false
 
     const onLoadFailure = onScriptLoadFailure || onFailure
@@ -148,9 +161,11 @@ const useGoogleLogin = ({
 
       () => {
         if (loaded) {
+          console.log('useEffect -> loaded')
           initializeAccount()
         } else {
           window.onload = () => {
+            console.log('useEffect -> onload')
             initializeAccount()
 
             setLoaded(true)
@@ -168,6 +183,8 @@ const useGoogleLogin = ({
       document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
 
       window.google && window.google.accounts && window.google.accounts.id.cancel()
+
+      console.log('useEffect -> unmount')
 
       removeScript(document, 'google-login')
     }
