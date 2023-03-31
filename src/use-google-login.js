@@ -88,7 +88,7 @@ const useGoogleLogin = ({
       window.google &&
         window.google.accounts &&
         window.google.accounts.id.prompt(notification => {
-          console.log('signIn -> prompt', notification)
+          console.log('signIn -> prompt', notification, notification.getNotDisplayedReason(), notification.getSkippedReason())
 
           if (notification.isNotDisplayed() && ['opt_out_or_no_session'].includes(notification.getNotDisplayedReason())) {
             console.log('signIn -> opt_out')
@@ -148,6 +148,7 @@ const useGoogleLogin = ({
 
     let unmounted = false
     let initialize = false
+    let bypassed = false
 
     const onLoadFailure = onScriptLoadFailure || onFailure
 
@@ -163,6 +164,12 @@ const useGoogleLogin = ({
       () => {
         initialize = true
 
+        if (bypassed) {
+          console.log('useEffect -> bypassed:loaded')
+          initializeAccount()
+
+          setLoaded(true)
+        }
         if (loaded) {
           console.log('useEffect -> loaded')
           initializeAccount()
@@ -179,7 +186,11 @@ const useGoogleLogin = ({
         onLoadFailure(error)
       },
 
-      () => !initialize && window.google && window.google.accounts
+      () => {
+        bypassed = true
+
+        return !initialize && window.google && window.google.accounts
+      }
     )
 
     return () => {
