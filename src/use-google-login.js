@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-unused-expressions */
 
 import jwt_decode from 'jwt-decode'
 
@@ -63,37 +64,45 @@ const useGoogleLogin = ({
     }
 
     if (loaded) {
-      window.google.accounts.id.prompt(notification => {
-        if (notification.isNotDisplayed() && ['opt_out_or_no_session'].includes(notification.getNotDisplayedReason())) {
-          const client = window.google.accounts.oauth2.initTokenClient({
-            client_id: clientId,
-
-            scope,
-
-            callback(tokenResponse) {
-              window.google.accounts.id.initialize({
+      window.google &&
+        window.google.accounts &&
+        window.google.accounts.id.prompt(notification => {
+          if (notification.isNotDisplayed() && ['opt_out_or_no_session'].includes(notification.getNotDisplayedReason())) {
+            const client =
+              window.google &&
+              window.google.accounts &&
+              window.google.accounts.oauth2.initTokenClient({
                 client_id: clientId,
 
-                itp_support: true,
-                auto_select: true,
+                scope,
 
-                callback: handleSigninSuccess
+                callback(tokenResponse) {
+                  window.google &&
+                    window.google.accounts &&
+                    window.google.accounts.id.initialize({
+                      client_id: clientId,
+
+                      itp_support: true,
+                      auto_select: true,
+
+                      callback: handleSigninSuccess
+                    })
+
+                  window.google && window.google.accounts && window.google.accounts.id.prompt()
+                }
               })
 
-              window.google.accounts.id.prompt()
-            }
-          })
+            client.requestAccessToken()
+          } else if (
+            notification.isNotDisplayed() ||
+            notification.isSkippedMoment() ||
+            ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
+          ) {
+            document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
 
-          client.requestAccessToken()
-        } else if (
-          notification.isNotDisplayed() ||
-          notification.isSkippedMoment() ||
-          ['user_cancel', 'issuing_failed'].includes(notification.getSkippedReason())
-        ) {
-          document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
-          window.google.accounts.id.cancel()
-        }
-      })
+            window.google && window.google.accounts && window.google.accounts.id.cancel()
+          }
+        })
     } else {
       const loadTimeout = setTimeout(() => {
         signIn(event)
@@ -155,7 +164,8 @@ const useGoogleLogin = ({
       unmounted = true
 
       document.cookie = `g_state=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`
-      window.google.accounts.id.cancel()
+
+      window.google && window.google.accounts && window.google.accounts.id.cancel()
 
       removeScript(document, 'google-login')
     }
