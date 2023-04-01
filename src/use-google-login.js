@@ -169,8 +169,7 @@ const useGoogleLogin = ({
           initializeAccount()
 
           setLoaded(true)
-        }
-        if (loaded) {
+        } else if (loaded) {
           console.log('useEffect -> loaded')
           initializeAccount()
         } else {
@@ -187,9 +186,13 @@ const useGoogleLogin = ({
       },
 
       () => {
-        bypassed = true
-
-        return !initialize && window.google && window.google.accounts
+        try {
+          return !loaded && !initialize && window.google && window.google.accounts
+        } finally {
+          if (!loaded && !initialize) {
+            bypassed = true
+          }
+        }
       }
     )
 
